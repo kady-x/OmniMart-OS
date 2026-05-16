@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniMart OS | Enterprise Retail Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-view" class="view-screen active">
+        <div class="login-split">
+            <div class="login-left">
+                <div class="brand-hero">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <h1>VibeOS</h1>
+                    <p>The next-generation platform for retail enterprise management.</p>
+                </div>
+                <div class="auth-box">
+                    <h2>Welcome back</h2>
+                    <p class="text-secondary mb-6">Enter your credentials to access your workspace.</p>
+                    <form id="login-form" onsubmit="handleLogin(event)">
+                        <div class="input-group">
+                            <label>Username</label>
+                            <input type="text" id="login-username" required placeholder="manager / cashier / customer" value="manager">
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <input type="password" id="login-password" required placeholder="••••••••" value="admin">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-full mt-4">Sign In</button>
+                    </form>
+                    <div class="demo-hints mt-6">
+                        <small class="text-secondary">Demo Accounts: <b>manager</b>:admin | <b>cashier</b>:cash | <b>customer</b>:cust</small>
+                    </div>
+                </div>
+            </div>
+            <div class="login-right">
+                <div class="glass-feature">
+                    <h3>Enterprise Ready</h3>
+                    <p>Seamlessly connect your storefront, point of sale, and back-office analytics into one unified ecosystem.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAAS APP LAYOUT (For Manager, Cashier, Supplier) -->
+    <div id="app-view" class="view-screen hidden">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-layer-group text-primary text-2xl"></i>
+                <span class="font-bold text-xl tracking-tight text-white">VibeOS</span>
+            </div>
+            <div class="sidebar-user">
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="user-meta">
+                    <span id="nav-user-name" class="font-medium text-white">User</span>
+                    <span id="nav-user-role" class="text-xs text-secondary uppercase tracking-wider">Role</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <!-- Dynamically populated based on role -->
+            </nav>
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="nav-item text-danger"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2 id="page-title" class="text-xl font-semibold text-white">Dashboard</h2>
+                <div class="topbar-actions">
+                    <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
+                    <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                
+                <!-- MANAGER DASHBOARD -->
+                <div id="mgr-dashboard" class="page-section hidden">
+                    <div class="stats-grid mb-6">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary-light text-primary"><i class="fa-solid fa-chart-line"></i></div>
+                            <div class="stat-data">
+                                <span class="stat-label">Net Revenue</span>
+                                <h3 id="stat-revenue" class="stat-val">$0.00</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success-light text-success"><i class="fa-solid fa-receipt"></i></div>
+                            <div class="stat-data">
+                                <span class="stat-label">Transactions</span>
+                                <h3 id="stat-transactions" class="stat-val">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-accent-light text-accent"><i class="fa-solid fa-boxes-stacked"></i></div>
+                            <div class="stat-data">
+                                <span class="stat-label">Active Products</span>
+                                <h3 id="stat-products" class="stat-val">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="card flex-1">
+                            <div class="card-header"><h3 class="font-semibold text-lg text-white">Revenue Overview</h3></div>
+                            <div class="p-4" style="height: 300px;"><canvas id="revenueChart"></canvas></div>
+                        </div>
+                        
+                        <div class="card flex-1">
+                            <div class="card-header flex justify-between align-center">
+                                <h3 class="font-semibold text-lg text-white">Recent Transactions</h3>
+                                <button onclick="exportToCSV()" class="btn btn-secondary btn-sm"><i class="fa-solid fa-download"></i> Export CSV</button>
+                            </div>
+                            <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                                <table class="saas-table">
+                                    <thead><tr><th>Order ID</th><th>Date</th><th>Status</th><th>Amount</th></tr></thead>
+                                    <tbody id="mgr-recent-orders"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANAGER INVENTORY -->
+                <div id="mgr-inventory" class="page-section hidden">
+                    <div class="card">
+                        <div class="card-header flex justify-between align-center">
+                            <h3 class="font-semibold text-lg text-white">Product Catalog</h3>
+                            <button onclick="openProductModal()" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Product</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="saas-table">
+                                <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody id="mgr-products-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANAGER STAFF -->
+                <div id="mgr-staff" class="page-section hidden">
+                    <div class="card">
+                        <div class="card-header flex justify-between align-center">
+                            <h3 class="font-semibold text-lg text-white">Team Members</h3>
+                            <button onclick="openStaffModal()" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Add Staff</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="saas-table">
+                                <thead><tr><th>User</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody id="mgr-staff-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANAGER PROMOTIONS -->
+                <div id="mgr-promotions" class="page-section hidden">
+                    <div class="card">
+                        <div class="card-header flex justify-between align-center">
+                            <h3 class="font-semibold text-lg text-white">Active Promotions</h3>
+                            <button onclick="openPromoModal()" class="btn btn-primary"><i class="fa-solid fa-tag"></i> New Promotion</button>
+                        </div>
+                        <div class="p-4 text-secondary text-sm">Promotions are automatically applied at checkout for active categories.</div>
+                        <div class="table-container">
+                            <table class="saas-table">
+                                <thead><tr><th>Category</th><th>Discount %</th><th>Start Date</th><th>End Date</th></tr></thead>
+                                <tbody id="mgr-promo-list">
+                                    <tr><td>All Categories</td><td>10%</td><td>2026-05-16</td><td>2026-05-23</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CASHIER POS TERMINAL -->
+                <div id="pos-terminal" class="page-section hidden">
+                    <div class="pos-wrapper">
+                        <div class="pos-main card flex flex-col">
+                            <div class="pos-header flex justify-between align-center mb-4">
+                                <div class="scanner-box flex-1 mr-4">
+                                    <i class="fa-solid fa-barcode text-secondary"></i>
+                                    <input type="text" id="pos-barcode" placeholder="Scan barcode..." onkeypress="if(event.key==='Enter') addPOSItem()">
+                                </div>
+                                <button onclick="addPOSItem()" class="btn btn-primary">Add</button>
+                                <button onclick="loadPendingOrders()" class="btn btn-secondary ml-2"><i class="fa-solid fa-cloud-arrow-down"></i> Online Orders</button>
+                            </div>
+                            
+                            <div id="pos-pending-panel" class="hidden mb-4 p-4 bg-surface rounded-lg border border-divider">
+                                <div class="flex justify-between align-center mb-2">
+                                    <h4 class="font-medium text-white">Pending Online Orders</h4>
+                                    <button class="icon-btn" onclick="document.getElementById('pos-pending-panel').classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <div id="pos-pending-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto"></div>
+                            </div>
+
+                            <div class="pos-cart flex-1 overflow-y-auto pr-2">
+                                <table class="saas-table">
+                                    <thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead>
+                                    <tbody id="pos-cart-items"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="pos-sidebar card flex flex-col">
+                            <h3 class="font-semibold text-lg text-white mb-4">Current Order</h3>
+                            <div class="summary-lines flex-1">
+                                <div class="flex justify-between text-secondary mb-2"><span>Subtotal</span> <span id="pos-subtotal">$0.00</span></div>
+                                <div class="flex justify-between text-secondary mb-4"><span>Tax</span> <span>$0.00</span></div>
+                                <div class="flex justify-between text-white text-2xl font-bold pt-4 border-t border-divider"><span>Total</span> <span id="pos-total">$0.00</span></div>
+                            </div>
+                            <div class="payment-selection mt-6 mb-4">
+                                <label class="radio-card">
+                                    <input type="radio" name="pay_method" value="CASH" checked>
+                                    <div class="radio-content"><i class="fa-solid fa-money-bill"></i> Cash</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="pay_method" value="CARD">
+                                    <div class="radio-content"><i class="fa-solid fa-credit-card"></i> Card</div>
+                                </label>
+                            </div>
+                            <button onclick="processPOS()" class="btn btn-success w-full text-lg py-3"><i class="fa-solid fa-check-circle"></i> Complete Checkout</button>
+                            <button onclick="clearPOS()" class="btn btn-ghost w-full mt-2 text-danger">Cancel Order</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUPPLIER PORTAL -->
+                <div id="supplier-portal" class="page-section hidden">
+                    <div class="card max-w-2xl mx-auto">
+                        <div class="card-header">
+                            <h3 class="font-semibold text-lg text-white">Register Delivery</h3>
+                            <p class="text-secondary text-sm">Submit inventory restocks directly to the warehouse.</p>
+                        </div>
+                        <form onsubmit="submitDelivery(event)" class="p-4">
+                            <div class="input-group">
+                                <label>Invoice Number</label>
+                                <input type="text" id="sup-invoice" required placeholder="e.g. INV-1029">
+                            </div>
+                            <div class="bg-surface p-4 rounded-lg mt-4 border border-divider">
+                                <h4 class="font-medium text-white mb-3">Item Details</h4>
+                                <div class="flex gap-4">
+                                    <div class="input-group flex-1"><label>Barcode</label><input type="text" id="sup-barcode" required></div>
+                                    <div class="input-group w-24"><label>Qty</label><input type="number" id="sup-qty" required min="1"></div>
+                                    <div class="input-group w-32"><label>Unit Cost</label><input type="number" step="0.01" id="sup-cost" required></div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-full mt-6">Process Delivery</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- CUSTOMER STOREFRONT LAYOUT -->
+    <div id="store-view" class="view-screen hidden bg-storefront">
+        <nav class="store-nav w-full">
+            <div class="store-brand flex align-center gap-2">
+                <i class="fa-solid fa-basket-shopping text-primary text-2xl"></i>
+                <span class="font-bold text-xl text-white">OmniMart OS</span>
+            </div>
+            <div class="store-actions flex align-center gap-4">
+                <span id="store-user" class="text-secondary font-medium"></span>
+                <button onclick="toggleStoreCart()" class="cart-btn relative">
+                    <i class="fa-solid fa-cart-shopping text-xl text-white"></i>
+                    <span id="store-cart-badge" class="badge">0</span>
+                </button>
+                <button onclick="logout()" class="btn btn-ghost text-secondary"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </nav>
+
+        <header class="store-hero w-full">
+            <div class="max-w-6xl mx-auto px-6 py-12 text-center">
+                <h1 class="text-5xl font-bold text-white mb-4 tracking-tight">Fresh groceries, <span class="text-primary">delivered.</span></h1>
+                <p class="text-xl text-secondary max-w-2xl mx-auto mb-8">Shop from thousands of fresh products and get them delivered to your door or ready for pickup.</p>
+                
+                <div class="store-search-container max-w-2xl mx-auto flex gap-3">
+                    <div class="input-group flex-1">
+                        <input type="text" id="store-search" placeholder="Search products, brands, or categories..." class="store-search-input">
+                    </div>
+                    <button onclick="loadStoreProducts()" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="store-main w-full max-w-6xl mx-auto px-6 py-8">
+            <div id="store-categories" class="flex gap-4 mb-8 overflow-x-auto pb-2 scroll-hide">
+                <button onclick="filterStore('All')" class="category-chip active">All</button>
+                <button onclick="filterStore('Produce')" class="category-chip">Produce</button>
+                <button onclick="filterStore('Dairy')" class="category-chip">Dairy</button>
+                <button onclick="filterStore('Bakery')" class="category-chip">Bakery</button>
+                <button onclick="filterStore('Meat')" class="category-chip">Meat</button>
+                <button onclick="filterStore('Beverages')" class="category-chip">Beverages</button>
+                <button onclick="filterStore('Snacks')" class="category-chip">Snacks</button>
+            </div>
+
+            <div class="flex justify-between align-center mb-8 w-full">
+                <h2 class="text-2xl font-bold text-white">Featured Products</h2>
+                <button onclick="loadStoreOrders()" class="btn btn-secondary"><i class="fa-solid fa-clock-rotate-left"></i> My Orders</button>
+            </div>
+            <div id="store-grid" class="store-grid">
+                <!-- Products -->
+            </div>
+
+            <div id="store-orders" class="hidden mt-12">
+                <h2 class="text-2xl font-bold text-white mb-6">Order History</h2>
+                <div class="card">
+                    <table class="saas-table w-full">
+                        <thead><tr><th>Order ID</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
+                        <tbody id="store-orders-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Store Cart Drawer -->
+        <div id="store-cart-drawer" class="drawer">
+            <div class="drawer-header flex justify-between align-center p-6 border-b border-divider">
+                <h2 class="text-xl font-bold text-white">Your Cart</h2>
+                <button onclick="toggleStoreCart()" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="store-cart-items" class="drawer-body p-6 flex-1 overflow-y-auto"></div>
+            <div class="drawer-footer p-6 border-t border-divider bg-surface">
+                <div class="flex justify-between text-white font-bold text-xl mb-6">
+                    <span>Total</span><span id="store-cart-total">$0.00</span>
+                </div>
+                <button onclick="submitStoreOrder()" class="btn btn-primary w-full text-lg py-3 shadow-glow">Checkout Securely</button>
+            </div>
+        </div>
+        <div id="drawer-overlay" class="drawer-overlay hidden" onclick="toggleStoreCart()"></div>
+    </div>
+
+    <!-- PRODUCT MODAL -->
+    <div id="product-modal" class="modal hidden">
+        <div class="modal-dialog card w-full max-w-md">
+            <div class="flex justify-between align-center mb-6">
+                <h3 class="text-xl font-bold text-white" id="modal-title">Product Details</h3>
+                <button onclick="closeProductModal()" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="product-form" onsubmit="saveProduct(event)">
+                <input type="hidden" id="prod-id">
+                <div class="input-group mb-4"><label>Barcode</label><input type="text" id="prod-barcode" required></div>
+                <div class="input-group mb-4"><label>Name</label><input type="text" id="prod-name" required></div>
+                <div class="flex gap-4 mb-4">
+                    <div class="input-group flex-1"><label>Category</label><input type="text" id="prod-category" required></div>
+                    <div class="input-group w-32"><label>Price ($)</label><input type="number" step="0.01" id="prod-price" required></div>
+                </div>
+                <div class="input-group mb-6"><label>Stock Level</label><input type="number" id="prod-stock" required></div>
+                <button type="submit" class="btn btn-primary w-full">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- STAFF MODAL -->
+    <div id="staff-modal" class="modal hidden">
+        <div class="modal-dialog card w-full max-w-md">
+            <div class="flex justify-between align-center mb-6">
+                <h3 class="text-xl font-bold text-white">Add Team Member</h3>
+                <button onclick="document.getElementById('staff-modal').classList.add('hidden')" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="staff-form" onsubmit="saveStaff(event)">
+                <div class="input-group mb-4"><label>Full Name</label><input type="text" id="staff-name" required></div>
+                <div class="input-group mb-4"><label>Username</label><input type="text" id="staff-user" required></div>
+                <div class="input-group mb-4"><label>Password</label><input type="password" id="staff-pass" required></div>
+                <div class="input-group mb-6">
+                    <label>Role</label>
+                    <select id="staff-role" class="w-full bg-base border border-divider text-white p-2 rounded" style="background: var(--bg-base); border-color: var(--divider); color: white;">
+                        <option value="MANAGER">Manager</option>
+                        <option value="CASHIER">Cashier</option>
+                        <option value="SUPPLIER">Supplier</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PROMO MODAL -->
+    <div id="promo-modal" class="modal hidden">
+        <div class="modal-dialog card w-full max-w-md">
+            <div class="flex justify-between align-center mb-6">
+                <h3 class="text-xl font-bold text-white">New Promotion</h3>
+                <button onclick="document.getElementById('promo-modal').classList.add('hidden')" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="promo-form" onsubmit="savePromo(event)">
+                <div class="input-group mb-4">
+                    <label>Product Barcode (Leave empty for category-wide)</label>
+                    <input type="text" id="promo-barcode">
+                </div>
+                <div class="input-group mb-4">
+                    <label>Discount Percentage (%)</label>
+                    <input type="number" id="promo-discount" min="1" max="100" required>
+                </div>
+                <div class="flex gap-4 mb-6">
+                    <div class="input-group flex-1"><label>Start Date</label><input type="date" id="promo-start" required></div>
+                    <div class="input-group flex-1"><label>End Date</label><input type="date" id="promo-end" required></div>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Activate Promotion</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RECEIPT MODAL -->
+    <div id="receipt-modal" class="modal hidden">
+        <div class="modal-dialog card w-full max-w-sm bg-white text-black" style="background: white; border-radius: 0;">
+            <div class="text-center border-b border-gray-300 pb-4 mb-4" style="border-bottom: 2px dashed #ccc; padding-bottom: 1rem; margin-bottom: 1rem;">
+                <h2 style="font-weight: 800; font-size: 1.5rem; text-transform: uppercase;">OmniMart OS</h2>
+                <p style="font-size: 0.8rem; color: #555;">123 Commerce St, Tech City</p>
+                <p style="font-size: 0.8rem; color: #555;" id="receipt-date"></p>
+            </div>
+            <div id="receipt-items" style="font-family: monospace; font-size: 0.9rem; margin-bottom: 1rem;">
+                <!-- items -->
+            </div>
+            <div style="border-top: 2px dashed #ccc; padding-top: 1rem; margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
+                    <span>TOTAL</span>
+                    <span id="receipt-total"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #555; margin-top: 0.5rem;">
+                    <span>METHOD</span>
+                    <span id="receipt-method"></span>
+                </div>
+            </div>
+            <div class="text-center mt-6">
+                <p style="font-size: 0.8rem; color: #555;">Thank you for shopping with us!</p>
+            </div>
+            <div class="mt-6 flex gap-2">
+                <button onclick="window.print()" class="btn btn-primary flex-1" style="border-radius: 4px;">Print</button>
+                <button onclick="document.getElementById('receipt-modal').classList.add('hidden')" class="btn btn-secondary flex-1" style="color: white;">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

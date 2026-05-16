@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+VibeMarket_Submission.zip
+npm-debug.log
+.DS_Store
+*.db
+*.db-journal

@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ----------------------------------------------------
+// Users Table (DFD 1.0 Authentication)
+// ----------------------------------------------------
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+  fullName  String   @default("")
+  email     String?  @unique
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  orders    Order[]
+  priceLogs PriceLog[]
+}
+
+enum Role {
+  MANAGER
+  CASHIER
+  SUPPLIER
+  CUSTOMER
+  DELIVERY
+}
+
+// ----------------------------------------------------
+// Inventory / Product DB (DFD 2.1 Manage Products)
+// ----------------------------------------------------
+model Product {
+  id          String   @id @default(uuid())
+  barcode     String   @unique
+  name        String
+  description String?
+  price       Float
+  stockLevel  Int      @default(0)
+  minStock    Int      @default(5)
+  category    String   @default("General")
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  priceLogs   PriceLog[]
+  promotions  Promotion[]
+  orderItems  OrderItem[]
+}
+
+// ----------------------------------------------------
+// Promotions DB & Price Log (DFD 6.2 & 6.4)
+// ----------------------------------------------------
+model Promotion {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  discountPct Float
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model PriceLog {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  oldPrice  Float
+  newPrice  Float
+  changedAt DateTime @default(now())
+  changedBy String   // Manager ID
+  manager   User     @relation(fields: [changedBy], references: [id])
+}
+
+// ----------------------------------------------------
+// Sales DB & Order Processing (DFD 3.3 & Bottom DFD)
+// ----------------------------------------------------
+model Order {
+  id          String      @id @default(uuid())
+  customerId  String?     // Can be null if guest checkout by Cashier
+  customer    User?       @relation(fields: [customerId], references: [id])
+  totalAmount Float
+  discount    Float       @default(0.0)
+  status      OrderStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  items       OrderItem[]
+  payment     Payment?
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  priceAt   Float   // Price at the time of purchase
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id])
+  amountPaid    Float
+  paymentMethod String   @default("CASH")
+  transactionId String   @unique @default(uuid())
+  status        String   @default("COMPLETED")
+  paidAt        DateTime @default(now())
+}
+
+// ----------------------------------------------------
+// Procurement / Supplier Table
+// ----------------------------------------------------
+model Procurement {
+  id          String   @id @default(uuid())
+  supplierId  String
+  invoice     String   @unique
+  itemCount   Int
+  totalValue  Float    @default(0.0)
+  status      String   @default("RECEIVED")
+  notes       String?
+  processedAt DateTime @default(now())
+}
