@@ -14,7 +14,7 @@ model User {
   id        String   @id @default(uuid())
   username  String   @unique
   password  String
-  role      Role     @default(CUSTOMER)
+  role      String   @default("CUSTOMER")
   fullName  String   @default("")
   email     String?  @unique
   phone     String?
@@ -25,14 +25,6 @@ model User {
   // Relations
   orders    Order[]
   priceLogs PriceLog[]
-}
-
-enum Role {
-  MANAGER
-  CASHIER
-  SUPPLIER
-  CUSTOMER
-  DELIVERY
 }
 
 // ----------------------------------------------------
@@ -92,21 +84,13 @@ model Order {
   customer    User?       @relation(fields: [customerId], references: [id])
   totalAmount Float
   discount    Float       @default(0.0)
-  status      OrderStatus @default(PENDING)
+  status      String      @default("PENDING")
   notes       String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   items       OrderItem[]
   payment     Payment?
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  SHIPPED
-  DELIVERED
-  CANCELLED
 }
 
 model OrderItem {
