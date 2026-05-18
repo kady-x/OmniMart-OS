@@ -1,4 +1,15 @@
+---
+title: OmniMart OS
+emoji: 🛒
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # OmniMart OS (Supermarket Management SaaS)
+
 
 A highly scalable, production-ready full-stack Supermarket Management System designed for modern retail environments. Built with a robust **Node.js/Express** backend, **Prisma ORM** for MySQL database interactions, and a custom **Vanilla JS/CSS** premium frontend architecture.
 
