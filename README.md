@@ -1,13 +1,3 @@
----
-title: OmniMart OS
-emoji: 🛒
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-app_port: 3000
-pinned: false
----
-
 # OmniMart OS (Supermarket Management SaaS)
 
 
@@ -31,40 +21,6 @@ The system is divided into four strictly isolated portals:
 - **JWT Authentication:** Stateless, encrypted session handling using `bcrypt` and JSON Web Tokens.
 - **SQLite Database:** Switched to SQLite for **Zero-Config Deployment**. No external database server is required, making the project perfectly portable for evaluations.
 - **Prisma ORM:** High-performance database abstraction for clean, type-safe queries.
-
----
-
-## 🚀 Deployment Guide (For Bonus Marks)
-
-This project is optimized for **Render.com** (Free Hosting).
-
-### 1. GitHub Repository
-1. Create a **Public** repository on your GitHub: `https://github.com/kady-x/OmniMart-OS.git`
-2. Link your local code:
-   ```bash
-   git remote add origin https://github.com/kady-x/OmniMart-OS.git
-   git branch -M main
-   git push -u origin main
-   ```
-
-### 2. Deploy on Render
-1. Go to [Render.com](https://render.com) and log in.
-2. Click **New +** -> **Web Service**.
-3. Connect your GitHub repository.
-4. Settings:
-   - **Environment:** `Docker`
-   - **Plan:** `Free`
-5. **Environment Variables:**
-   - `JWT_SECRET`: `any_random_string`
-   - `NODE_ENV`: `production`
-6. Click **Deploy Web Service**. Render will use the `Dockerfile` to build and launch your site!
-
-### 3. Demo Video
-Highlight these features in your video:
-- **Responsive Storefront:** Search and filter logic.
-- **Cashier POS:** Barcode lookup and receipt printing.
-- **Manager Dash:** Revenue charts (Chart.js) and Export to CSV.
-- **Security:** Show the login/logout flow.
 
 ---
 
