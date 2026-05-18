@@ -1,3 +1,13 @@
+---
+title: OmniMart OS
+emoji: 🛒
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 3000
+pinned: false
+---
+
 # OmniMart OS (Supermarket Management SaaS)
 
 
