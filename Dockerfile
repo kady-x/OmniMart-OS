@@ -1,5 +1,8 @@
 FROM node:18-slim
 
+# Install system dependencies for Prisma Compatibility
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
+
 # Set working directory
 WORKDIR /usr/src/app
 
